@@ -1,7 +1,7 @@
 USE ORDER_DDS;
 
 INSERT INTO DimEmployees (
-    employee_id_nk, -- Natural Key
+    employee_id_nk, 
     first_name,
     last_name,
     title,
@@ -15,7 +15,7 @@ SELECT
     STG.LastName,
     STG.Title,
     STG.ReportsTo,
-    'Active' AS active_status, -- Example value for historical snapshots
+    'Active' AS active_status, 
     1 AS is_active
 FROM dbo.Staging_Employees STG
 LEFT JOIN DimEmployees DIM

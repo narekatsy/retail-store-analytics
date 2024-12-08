@@ -10,8 +10,8 @@ INSERT INTO DimRegion (
 SELECT
     STG.RegionID,
     STG.RegionDescription,
-    STG.RegionDescription AS current_region_description, -- Assuming same value for new records
-    NULL AS prior_region_description, -- No prior value for new records
+    STG.RegionDescription AS current_region_description, 
+    NULL AS prior_region_description,
     GETDATE() AS change_date
 FROM dbo.Staging_Region STG
 LEFT JOIN DimRegion DIM

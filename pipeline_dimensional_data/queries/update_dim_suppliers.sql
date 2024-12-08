@@ -1,7 +1,7 @@
 USE ORDER_DDS;
 
 INSERT INTO DimSuppliers (
-    supplier_id_nk, -- Natural Key
+    supplier_id_nk, 
     company_name,
     contact_name,
     address,

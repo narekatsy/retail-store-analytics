@@ -1,17 +1,15 @@
 USE ORDER_DDS;
 
--- Declare the variables for the date range
-DECLARE @start_date DATE = '2004-01-01'; -- Replace with your desired start date
-DECLARE @end_date DATE = '2024-12-31';   -- Replace with your desired end date
+DECLARE @start_date DATE = '2004-01-01';
+DECLARE @end_date DATE = '2024-12-31';  
 
--- Insert new data into FactOrders
 INSERT INTO FactOrders (
-    order_id_nk, -- Natural Key
-    product_id_nk, -- Natural Key
+    order_id_nk, 
+    product_id_nk, 
     order_date,
-    customer_id, -- Surrogate Key referencing DimCustomers
-    employee_id, -- Surrogate Key referencing DimEmployees
-    shipper_id, -- Surrogate Key referencing DimShippers
+    customer_id, 
+    employee_id, 
+    shipper_id, 
     quantity,
     unit_price,
     discount
