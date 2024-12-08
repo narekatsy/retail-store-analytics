@@ -11,7 +11,7 @@ CREATE TABLE DimCategories (
     category_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
     category_id_nk INT NOT NULL, -- Natural Key
     category_name NVARCHAR(100),
-    description NVARCHAR(255),
+    cat_description NVARCHAR(255),
     is_active BIT DEFAULT 1 -- Active status for SCD1
 );
 

@@ -2,6 +2,8 @@
 USE ORDER_DDS;
 GO
 
+
+
 CREATE TABLE dbo.Categories (
     CategoryID INT PRIMARY KEY,
     CategoryName NVARCHAR(50) NOT NULL,
@@ -236,8 +238,4 @@ CREATE TABLE dbo.Staging_Territories (
     TerritoryDescription NVARCHAR(50),
     RegionID INT
 );
-
-
-
-
 
