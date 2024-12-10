@@ -1,7 +1,7 @@
 USE ORDER_DDS;
 
 INSERT INTO DimCategories (
-    category_id_nk, -- Natural Key
+    category_id_nk,
     category_name,
     cat_description,
     is_active

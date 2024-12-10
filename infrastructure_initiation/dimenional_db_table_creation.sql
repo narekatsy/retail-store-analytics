@@ -1,15 +1,14 @@
-
 -- Create Dim_SOR table
 CREATE TABLE Dim_SOR (
-    sor_key INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
+    sor_key INT IDENTITY(1,1) PRIMARY KEY,
     source_table_name NVARCHAR(255),
     source_key NVARCHAR(255)
 );
 
 -- Create DimCategories table (SCD1 with delete)
 CREATE TABLE DimCategories (
-    category_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    category_id_nk INT NOT NULL, -- Natural Key
+    category_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    category_id_nk INT NOT NULL,
     category_name NVARCHAR(100),
     cat_description NVARCHAR(255),
     is_active BIT DEFAULT 1 -- Active status for SCD1
@@ -17,8 +16,8 @@ CREATE TABLE DimCategories (
 
 -- Create DimCustomers table (SCD2)
 CREATE TABLE DimCustomers (
-    customer_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    customer_id_nk INT NOT NULL, -- Natural Key
+    customer_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    customer_id_nk INT NOT NULL,
     customer_name NVARCHAR(100),
     contact_name NVARCHAR(100),
     address NVARCHAR(255),
@@ -33,8 +32,8 @@ CREATE TABLE DimCustomers (
 
 -- Create DimEmployees table (SCD4 with delete)
 CREATE TABLE DimEmployees (
-    employee_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    employee_id_nk INT NOT NULL, -- Natural Key
+    employee_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    employee_id_nk INT NOT NULL,
     first_name NVARCHAR(100),
     last_name NVARCHAR(100),
     title NVARCHAR(100),
@@ -45,8 +44,8 @@ CREATE TABLE DimEmployees (
 
 -- Create DimProducts table (SCD4)
 CREATE TABLE DimProducts (
-    product_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    product_id_nk INT NOT NULL, -- Natural Key
+    product_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    product_id_nk INT NOT NULL,
     product_name NVARCHAR(100),
     supplier_id INT,
     category_id INT,
@@ -60,8 +59,8 @@ CREATE TABLE DimProducts (
 
 -- Create DimRegion table (SCD3)
 CREATE TABLE DimRegion (
-    region_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    region_id_nk INT NOT NULL, -- Natural Key
+    region_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    region_id_nk INT NOT NULL,
     region_description NVARCHAR(255),
     current_region_description NVARCHAR(255), -- Current value for SCD3
     prior_region_description NVARCHAR(255), -- Prior value for SCD3
@@ -70,8 +69,8 @@ CREATE TABLE DimRegion (
 
 -- Create DimShippers table (SCD1)
 CREATE TABLE DimShippers (
-    shipper_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    shipper_id_nk INT NOT NULL, -- Natural Key
+    shipper_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    shipper_id_nk INT NOT NULL,
     company_name NVARCHAR(255),
     phone NVARCHAR(50),
     is_active BIT DEFAULT 1
@@ -79,8 +78,8 @@ CREATE TABLE DimShippers (
 
 -- Create DimSuppliers table (SCD4)
 CREATE TABLE DimSuppliers (
-    supplier_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    supplier_id_nk INT NOT NULL, -- Natural Key
+    supplier_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    supplier_id_nk INT NOT NULL,
     company_name NVARCHAR(255),
     contact_name NVARCHAR(100),
     address NVARCHAR(255),
@@ -94,12 +93,12 @@ CREATE TABLE DimSuppliers (
 -- Create DimTerritories table (SCD3)
 -- Create DimTerritories table (SCD3)
 CREATE TABLE DimTerritories (
-    territory_id_sk INT IDENTITY(1,1) PRIMARY KEY, -- Surrogate Key
-    territory_id_nk INT NOT NULL, -- Natural Key
+    territory_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    territory_id_nk INT NOT NULL, 
     territory_description NVARCHAR(255),
     current_territory_description NVARCHAR(255), -- Current value for SCD3
     prior_territory_description NVARCHAR(255), -- Prior value for SCD3
-    region_id_sk INT, -- Foreign Key column
+    region_id_sk INT,
     change_date DATE,
     FOREIGN KEY (region_id_sk) REFERENCES DimRegion(region_id_sk) -- Reference surrogate key in DimRegion
 );
@@ -107,8 +106,8 @@ CREATE TABLE DimTerritories (
 
 -- Create FactOrders table (SNAPSHOT)
 CREATE TABLE FactOrders (
-    order_id_nk INT NOT NULL, -- Natural Key
-    product_id_nk INT NOT NULL, -- Natural Key
+    order_id_nk INT NOT NULL,
+    product_id_nk INT NOT NULL,
     order_date DATE NOT NULL,
     customer_id INT NOT NULL, -- Surrogate Key referencing DimCustomers
     employee_id INT, -- Surrogate Key referencing DimEmployees
@@ -118,10 +117,8 @@ CREATE TABLE FactOrders (
     discount FLOAT,
     total_price AS (quantity * unit_price * (1 - discount)) PERSISTED, -- Computed column
     PRIMARY KEY (order_id_nk, product_id_nk), -- Composite key for snapshot fact
-    FOREIGN KEY (customer_id) REFERENCES DimCustomers(customer_id_sk), -- Use surrogate key
-    FOREIGN KEY (employee_id) REFERENCES DimEmployees(employee_id_sk), -- Use surrogate key
-    FOREIGN KEY (shipper_id) REFERENCES DimShippers(shipper_id_sk), -- Use surrogate key
-    FOREIGN KEY (product_id_nk) REFERENCES DimProducts(product_id_nk) -- Use natural key
+    FOREIGN KEY (customer_id) REFERENCES DimCustomers(customer_id_sk),
+    FOREIGN KEY (employee_id) REFERENCES DimEmployees(employee_id_sk),
+    FOREIGN KEY (shipper_id) REFERENCES DimShippers(shipper_id_sk),
+    FOREIGN KEY (product_id_nk) REFERENCES DimProducts(product_id_nk)
 );
-
-

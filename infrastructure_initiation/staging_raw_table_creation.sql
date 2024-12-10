@@ -1,8 +1,5 @@
-
 USE ORDER_DDS;
 GO
-
-
 
 CREATE TABLE dbo.Categories (
     CategoryID INT PRIMARY KEY,
@@ -49,6 +46,7 @@ CREATE TABLE dbo.Staging_Customers (
     Phone NVARCHAR(24),
     Fax NVARCHAR(24)
 );
+
 CREATE TABLE dbo.Employees (
     EmployeeID INT PRIMARY KEY,
     LastName NVARCHAR(20) NOT NULL,
@@ -90,6 +88,7 @@ CREATE TABLE dbo.Staging_Employees (
     Notes NVARCHAR(MAX),
     ReportsTo INT
 );
+
 CREATE TABLE dbo.OrderDetails (
     OrderID INT,
     ProductID INT,
@@ -143,6 +142,7 @@ CREATE TABLE dbo.Staging_Orders (
     ShipPostalCode NVARCHAR(10),
     ShipCountry NVARCHAR(15)
 );
+
 CREATE TABLE dbo.Products (
     ProductID INT PRIMARY KEY,
     ProductName NVARCHAR(40) NOT NULL,
@@ -181,6 +181,7 @@ CREATE TABLE dbo.Staging_Region (
     RegionID INT,
     RegionDescription NVARCHAR(50)
 );
+
 CREATE TABLE dbo.Shippers (
     ShipperID INT PRIMARY KEY,
     CompanyName NVARCHAR(40) NOT NULL,
@@ -194,6 +195,7 @@ CREATE TABLE dbo.Staging_Shippers (
     CompanyName NVARCHAR(40),
     Phone NVARCHAR(24)
 );
+
 CREATE TABLE dbo.Suppliers (
     SupplierID INT PRIMARY KEY,
     CompanyName NVARCHAR(40) NOT NULL,
@@ -225,6 +227,7 @@ CREATE TABLE dbo.Staging_Suppliers (
     Fax NVARCHAR(24),
     HomePage NVARCHAR(MAX)
 );
+
 CREATE TABLE dbo.Territories (
     TerritoryID NVARCHAR(20) PRIMARY KEY,
     TerritoryDescription NVARCHAR(50) NOT NULL,
@@ -238,4 +241,3 @@ CREATE TABLE dbo.Staging_Territories (
     TerritoryDescription NVARCHAR(50),
     RegionID INT
 );
-
