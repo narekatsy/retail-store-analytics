@@ -25,5 +25,3 @@ FROM dbo.Staging_Customers STG
 LEFT JOIN DimCustomers DIM
     ON STG.CustomerID = DIM.customer_id_nk
 WHERE DIM.customer_id_nk IS NULL;
-
-

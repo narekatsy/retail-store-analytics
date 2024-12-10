@@ -1,7 +1,7 @@
 USE ORDER_DDS;
 
 INSERT INTO DimRegion (
-    region_id_nk, -- Natural Key
+    region_id_nk,
     region_description,
     current_region_description,
     prior_region_description,
