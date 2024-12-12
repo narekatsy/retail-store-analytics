@@ -55,8 +55,6 @@ CREATE TABLE DimProducts (
     CONSTRAINT UQ_DimProducts_product_id_nk UNIQUE (product_id_nk) -- Unique constraint on natural key
 );
 
-
-
 -- Create DimRegion table (SCD3)
 CREATE TABLE DimRegion (
     region_id_sk INT IDENTITY(1,1) PRIMARY KEY,
@@ -91,7 +89,6 @@ CREATE TABLE DimSuppliers (
 );
 
 -- Create DimTerritories table (SCD3)
--- Create DimTerritories table (SCD3)
 CREATE TABLE DimTerritories (
     territory_id_sk INT IDENTITY(1,1) PRIMARY KEY,
     territory_id_nk INT NOT NULL, 
@@ -106,19 +103,21 @@ CREATE TABLE DimTerritories (
 
 -- Create FactOrders table (SNAPSHOT)
 CREATE TABLE FactOrders (
+    fact_order_id_sk INT IDENTITY(1,1) PRIMARY KEY,
     order_id_nk INT NOT NULL,
-    product_id_nk INT NOT NULL,
+    product_id_sk INT NOT NULL,
     order_date DATE NOT NULL,
-    customer_id INT NOT NULL, -- Surrogate Key referencing DimCustomers
-    employee_id INT, -- Surrogate Key referencing DimEmployees
-    shipper_id INT, -- Surrogate Key referencing DimShippers
+    customer_id_sk INT NOT NULL,
+    employee_id_sk INT,
+    shipper_id_sk INT,
     quantity INT,
     unit_price DECIMAL(10, 2),
     discount FLOAT,
-    total_price AS (quantity * unit_price * (1 - discount)) PERSISTED, -- Computed column
-    PRIMARY KEY (order_id_nk, product_id_nk), -- Composite key for snapshot fact
-    FOREIGN KEY (customer_id) REFERENCES DimCustomers(customer_id_sk),
-    FOREIGN KEY (employee_id) REFERENCES DimEmployees(employee_id_sk),
-    FOREIGN KEY (shipper_id) REFERENCES DimShippers(shipper_id_sk),
-    FOREIGN KEY (product_id_nk) REFERENCES DimProducts(product_id_nk)
+    total_price AS (quantity * unit_price * (1 - discount)) PERSISTED,
+    FOREIGN KEY (customer_id_sk) REFERENCES DimCustomers(customer_id_sk),
+    FOREIGN KEY (employee_id_sk) REFERENCES DimEmployees(employee_id_sk),
+    FOREIGN KEY (shipper_id_sk) REFERENCES DimShippers(shipper_id_sk),
+    FOREIGN KEY (product_id_sk) REFERENCES DimProducts(product_id_sk)
 );
+
+ALTER TABLE FactOrders ADD CONSTRAINT UQ_FactOrders_order_id_nk UNIQUE (order_id_nk);

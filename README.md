@@ -11,9 +11,21 @@ The pipeline supports dimensional modeling, handles Slowly Changing Dimensions (
 
 ## How to Use
 
-Clone the repository
+1. Clone the repository
 
 ```bash
 git clone https://github.com/narekatsy/retail-store-analytics.git
 cd retail-store-analytics
 ```
+
+2. Install the requirements
+
+```bash
+pip install -r requirements.txt
+```
+3. Run the project
+
+```bash
+python main.py
+```
+
