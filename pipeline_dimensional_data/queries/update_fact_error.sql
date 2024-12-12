@@ -1,5 +1,5 @@
 
-DECLARE @start_date DATE = '2004-01-01'; 
+DECLARE @start_date DATE = '2024-01-01'; 
 DECLARE @end_date DATE = '2024-12-31';   
 
 -- Insert faulty rows into FactOrders_Error

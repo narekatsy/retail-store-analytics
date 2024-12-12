@@ -1,6 +1,6 @@
 USE ORDER_DDS;
-GO
 
+-- Categories
 CREATE TABLE dbo.Categories (
     CategoryID INT PRIMARY KEY,
     CategoryName NVARCHAR(50) NOT NULL,
@@ -8,7 +8,6 @@ CREATE TABLE dbo.Categories (
     Picture VARBINARY(MAX)
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Categories (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     CategoryID INT,
@@ -17,6 +16,7 @@ CREATE TABLE dbo.Staging_Categories (
     Picture VARBINARY(MAX)
 );
 
+-- Customers
 CREATE TABLE dbo.Customers (
     CustomerID NVARCHAR(5) PRIMARY KEY,
     CompanyName NVARCHAR(40) NOT NULL,
@@ -31,7 +31,6 @@ CREATE TABLE dbo.Customers (
     Fax NVARCHAR(24)
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Customers (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     CustomerID NVARCHAR(5),
@@ -47,6 +46,7 @@ CREATE TABLE dbo.Staging_Customers (
     Fax NVARCHAR(24)
 );
 
+-- Employees
 CREATE TABLE dbo.Employees (
     EmployeeID INT PRIMARY KEY,
     LastName NVARCHAR(20) NOT NULL,
@@ -67,7 +67,6 @@ CREATE TABLE dbo.Employees (
     ReportsTo INT
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Employees (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     EmployeeID INT,
@@ -89,6 +88,7 @@ CREATE TABLE dbo.Staging_Employees (
     ReportsTo INT
 );
 
+-- Prder Details
 CREATE TABLE dbo.OrderDetails (
     OrderID INT,
     ProductID INT,
@@ -98,7 +98,6 @@ CREATE TABLE dbo.OrderDetails (
     PRIMARY KEY (OrderID, ProductID)
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_OrderDetails (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
@@ -107,6 +106,8 @@ CREATE TABLE dbo.Staging_OrderDetails (
     Quantity SMALLINT,
     Discount REAL
 );
+
+-- Orders
 CREATE TABLE dbo.Orders (
     OrderID INT PRIMARY KEY,
     CustomerID NVARCHAR(5),
@@ -124,7 +125,6 @@ CREATE TABLE dbo.Orders (
     ShipCountry NVARCHAR(15)
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Orders (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
@@ -143,6 +143,7 @@ CREATE TABLE dbo.Staging_Orders (
     ShipCountry NVARCHAR(15)
 );
 
+-- Products
 CREATE TABLE dbo.Products (
     ProductID INT PRIMARY KEY,
     ProductName NVARCHAR(40) NOT NULL,
@@ -156,7 +157,6 @@ CREATE TABLE dbo.Products (
     Discontinued BIT
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Products (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     ProductID INT,
@@ -170,25 +170,26 @@ CREATE TABLE dbo.Staging_Products (
     ReorderLevel SMALLINT,
     Discontinued BIT
 );
+
+-- Region
 CREATE TABLE dbo.Region (
     RegionID INT PRIMARY KEY,
     RegionDescription NVARCHAR(50) NOT NULL
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Region (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     RegionID INT,
     RegionDescription NVARCHAR(50)
 );
 
+-- Shippers
 CREATE TABLE dbo.Shippers (
     ShipperID INT PRIMARY KEY,
     CompanyName NVARCHAR(40) NOT NULL,
     Phone NVARCHAR(24)
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Shippers (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     ShipperID INT,
@@ -196,6 +197,7 @@ CREATE TABLE dbo.Staging_Shippers (
     Phone NVARCHAR(24)
 );
 
+-- Suppliers
 CREATE TABLE dbo.Suppliers (
     SupplierID INT PRIMARY KEY,
     CompanyName NVARCHAR(40) NOT NULL,
@@ -211,7 +213,6 @@ CREATE TABLE dbo.Suppliers (
     HomePage NVARCHAR(MAX)
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Suppliers (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     SupplierID INT,
@@ -228,13 +229,13 @@ CREATE TABLE dbo.Staging_Suppliers (
     HomePage NVARCHAR(MAX)
 );
 
+-- Territories
 CREATE TABLE dbo.Territories (
     TerritoryID NVARCHAR(20) PRIMARY KEY,
     TerritoryDescription NVARCHAR(50) NOT NULL,
     RegionID INT NOT NULL
 );
 
--- Staging table with IDENTITY
 CREATE TABLE dbo.Staging_Territories (
     StagingID INT IDENTITY(1,1) PRIMARY KEY,
     TerritoryID NVARCHAR(20),
