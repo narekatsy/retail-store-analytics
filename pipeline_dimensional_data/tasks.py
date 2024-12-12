@@ -19,6 +19,7 @@ def ingest_dimensional_tables():
         {"sql_file": "pipeline_dimensional_data/queries/update_dim_suppliers.sql", "table": "DimSuppliers"},
         {"sql_file": "pipeline_dimensional_data/queries/update_dim_shippers.sql", "table": "DimShippers"},
         {"sql_file": "pipeline_dimensional_data/queries/update_dim_territories.sql", "table": "DimTerritories"},
+        {"sql_file": "pipeline_dimensional_data/queries/update_dim_order_details.sql", "table": "DimOrderDetails"},
     ]
 
     for query in dimensional_queries:
