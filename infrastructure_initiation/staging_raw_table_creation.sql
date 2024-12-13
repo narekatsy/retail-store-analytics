@@ -242,3 +242,85 @@ CREATE TABLE dbo.Staging_Territories (
     TerritoryDescription NVARCHAR(50),
     RegionID INT
 );
+
+-- FactOrders
+
+
+-- Create FactOrders table
+CREATE TABLE dbo.FactOrders (
+    fact_order_id_sk INT IDENTITY(1,1) PRIMARY KEY,
+    order_id_nk INT NOT NULL,
+    product_id_sk INT NOT NULL,
+    order_date DATE NOT NULL,
+    customer_id_sk INT NOT NULL,
+    employee_id_sk INT,
+    shipper_id_sk INT,
+    quantity INT,
+    unit_price DECIMAL(10, 2),
+    discount FLOAT,
+    total_price AS (quantity * unit_price * (1 - discount)) PERSISTED,
+    sor_key NVARCHAR(255),
+    FOREIGN KEY (customer_id_sk) REFERENCES dbo.DimCustomers(customer_id_sk),
+    FOREIGN KEY (employee_id_sk) REFERENCES dbo.DimEmployees(employee_id_sk),
+    FOREIGN KEY (shipper_id_sk) REFERENCES dbo.DimShippers(shipper_id_sk),
+    FOREIGN KEY (product_id_sk) REFERENCES dbo.DimProducts(product_id_sk)
+);
+
+ALTER TABLE dbo.FactOrders ADD CONSTRAINT UQ_FactOrders_order_id_nk UNIQUE (order_id_nk);
+
+--Staging FactOrders
+CREATE TABLE dbo.Staging_FactOrders (
+    StagingID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    CustomerID INT NOT NULL,
+    EmployeeID INT,
+    ShipVia INT,
+    OrderDate DATE NOT NULL,
+    Quantity INT NOT NULL,
+    UnitPrice DECIMAL(10, 2) NOT NULL,
+    Discount FLOAT NOT NULL,
+    LoadTimestamp DATETIME DEFAULT GETDATE()
+);
+
+
+-- Fact_error
+
+CREATE TABLE dbo.DimFactOrders_Error (
+    OrderID INT,
+    ProductID INT,
+    CustomerID NVARCHAR(5),
+    EmployeeID INT,
+    ShipVia INT,
+    OrderDate DATE,
+    RequiredDate DATE,
+    ShippedDate DATE,
+    Freight MONEY,
+    ShipName NVARCHAR(255),
+    ShipAddress NVARCHAR(255),
+    ShipCity NVARCHAR(50),
+    ShipRegion NVARCHAR(50),
+    ShipPostalCode NVARCHAR(20),
+    ShipCountry NVARCHAR(50),
+    LoadTimestamp DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE dbo.Staging_FactOrders_Error (
+    StagingID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT,
+    ProductID INT,
+    CustomerID NVARCHAR(5),
+    EmployeeID INT,
+    ShipVia INT,
+    OrderDate DATE,
+    RequiredDate DATE,
+    ShippedDate DATE,
+    Freight MONEY,
+    ShipName NVARCHAR(255),
+    ShipAddress NVARCHAR(255),
+    ShipCity NVARCHAR(50),
+    ShipRegion NVARCHAR(50),
+    ShipPostalCode NVARCHAR(20),
+    ShipCountry NVARCHAR(50),
+    LoadTimestamp DATETIME DEFAULT GETDATE()
+);
