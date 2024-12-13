@@ -5,7 +5,7 @@ DECLARE @SourceTableName NVARCHAR(255) = 'Staging_FactOrders';
 DECLARE @StartDate DATE = '2000-01-01'; 
 DECLARE @EndDate DATE = '2024-12-31'; 
 
--- Insert faulty rows into FactOrders_Error due to missing or invalid natural keys
+-- Insert
 INSERT INTO ORDER_DDS.dbo.FactOrders_Error (
     staging_raw_id,
     source_table_name,
