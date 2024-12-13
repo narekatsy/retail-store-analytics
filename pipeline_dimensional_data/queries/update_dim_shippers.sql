@@ -1,21 +1,45 @@
 USE ORDER_DDS;
 
-INSERT INTO DimShipper (
+DECLARE @SourceTableName NVARCHAR(255) = 'Staging_Shippers';
+
+INSERT INTO dbo.Dim_SOR (source_table_name, source_key)
+SELECT DISTINCT
+    @SourceTableName, CAST(ST.StagingID AS NVARCHAR)
+FROM dbo.Staging_Shippers AS ST
+LEFT JOIN dbo.Dim_SOR AS DS
+    ON DS.source_table_name = @SourceTableName AND DS.source_key = CAST(ST.StagingID AS NVARCHAR)
+WHERE DS.sor_key IS NULL;
+
+--  Insert 
+INSERT INTO dbo.DimShippers (
     shipper_id_nk,
-    shipper_name,
-    current_shipper_name,
-    prior_shipper_name,
-    change_date
+    company_name,
+    phone,
+    sor_key
 )
-SELECT
-    STG.ShipperID,
-    STG.ShipperName,
-    STG.ShipperName AS current_shipper_name, 
-    NULL AS prior_shipper_name,
-    GETDATE() AS change_date
-FROM dbo.Staging_Shippers STG
-LEFT JOIN DimShipper DIM
-    ON STG.ShipperID = DIM.shipper_id_nk
-WHERE DIM.shipper_id_nk IS NULL;
+SELECT 
+    ST.ShipperID,
+    ST.CompanyName,
+    ST.Phone,
+    DS.sor_key
+FROM dbo.Staging_Shippers AS ST
+LEFT JOIN dbo.Dim_SOR AS DS
+    ON DS.source_table_name = @SourceTableName AND DS.source_key = CAST(ST.StagingID AS NVARCHAR)
+LEFT JOIN dbo.DimShippers AS DT
+    ON DT.shipper_id_nk = ST.ShipperID
+WHERE DT.shipper_id_nk IS NULL;
 
-
+-- Update 
+UPDATE DT
+SET 
+    DT.company_name = ST.CompanyName,
+    DT.phone = ST.Phone,
+    DT.sor_key = DS.sor_key
+FROM dbo.DimShippers AS DT
+INNER JOIN dbo.Staging_Shippers AS ST
+    ON DT.shipper_id_nk = ST.ShipperID
+INNER JOIN dbo.Dim_SOR AS DS
+    ON DS.source_table_name = @SourceTableName AND DS.source_key = CAST(ST.StagingID AS NVARCHAR)
+WHERE 
+    DT.company_name <> ST.CompanyName OR
+    DT.phone <> ST.Phone;
