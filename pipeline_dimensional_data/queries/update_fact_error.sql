@@ -1,48 +1,57 @@
-DECLARE @DatabaseName NVARCHAR(255) = 'ORDER_DDS'; 
-DECLARE @SchemaName NVARCHAR(255) = 'dbo';
-DECLARE @FactErrorTableName NVARCHAR(255) = 'FactOrders_Error'; 
-DECLARE @SourceTableName NVARCHAR(255) = 'Staging_FactOrders'; 
-DECLARE @StartDate DATE = '2000-01-01'; 
-DECLARE @EndDate DATE = '2024-12-31'; 
+DECLARE @DatabaseName NVARCHAR(100);
+DECLARE @SchemaName NVARCHAR(50);
+DECLARE @TableName NVARCHAR(100);
+DECLARE @StartDate DATE;
+DECLARE @EndDate DATE;
+DECLARE @SourceSystemKey INT;
+DECLARE @SourceTableName NVARCHAR(100);
 
--- Insert
-INSERT INTO ORDER_DDS.dbo.FactOrders_Error (
-    staging_raw_id,
-    source_table_name,
-    error_reason,
-    order_id,
-    product_id,
-    customer_id,
-    employee_id,
-    ship_via,
-    order_date,
-    sor_key
+SET @DatabaseName = 'ORDER_DDS';
+SET @SchemaName = 'dbo';
+SET @TableName = 'fact_error';
+SET @StartDate = '2024-01-01';
+SET @EndDate = '2024-12-31';
+SET @SourceSystemKey = 1;
+SET @SourceTableName = 'Orders_Staging';
+
+INSERT INTO fact_error (
+    OrderID, ProductID, CustomerID, EmployeeID, ShipVia, TerritoryID,
+    OrderDate, RequiredDate, ShippedDate, Freight, ShipName, ShipAddress,
+    ShipCity, ShipRegion, ShipPostalCode, ShipCountry, ErrorType, StagingRawID, SORKey
 )
 SELECT 
-    ST.StagingID AS staging_raw_id,
-    @SourceTableName AS source_table_name,
-    CASE
-        WHEN DPC.product_id_sk IS NULL THEN 'Missing ProductID'
-        WHEN DCT.customer_id_sk IS NULL THEN 'Missing CustomerID'
-        WHEN DEM.employee_id_sk IS NULL THEN 'Missing EmployeeID'
-        WHEN DSP.shipper_id_sk IS NULL THEN 'Missing ShipperID'
-        ELSE 'Unknown Error'
-    END AS error_reason,
-    ST.OrderID,
-    ST.ProductID,
-    ST.CustomerID,
-    ST.EmployeeID,
-    ST.ShipVia,
-    ST.OrderDate
-    CAST(ST.StagingID AS NVARCHAR) AS sor_key
-FROM ORDER_DDS.dbo.Staging_FactOrders AS ST
-LEFT JOIN dbo.DimProducts AS DPC
-    ON DPC.product_id_nk = ST.ProductID
-LEFT JOIN dbo.DimCustomers AS DCT
-    ON DCT.customer_id_nk = ST.CustomerID
-LEFT JOIN dbo.DimEmployees AS DEM
-    ON DEM.employee_id_nk = ST.EmployeeID
-LEFT JOIN dbo.DimShippers AS DSP
-    ON DSP.shipper_id_nk = ST.ShipVia
-WHERE ST.OrderDate BETWEEN @StartDate AND @EndDate
-  AND (DPC.product_id_sk IS NULL OR DCT.customer_id_sk IS NULL OR DEM.employee_id_sk IS NULL OR DSP.shipper_id_sk IS NULL);
+    O.OrderID,
+    OD.ProductID,
+    O.CustomerID,
+    O.EmployeeID,
+    O.ShipVia,
+    O.TerritoryID,
+    O.OrderDate,
+    O.RequiredDate,
+    O.ShippedDate,
+    O.Freight,
+    O.ShipName,
+    O.ShipAddress,
+    O.ShipCity,
+    O.ShipRegion,
+    O.ShipPostalCode,
+    O.ShipCountry,
+    'Missing or Invalid Key' AS ErrorType,
+    O.staging_raw_id,
+    D.SORKey
+FROM 
+    Orders_Staging O
+LEFT JOIN DimCustomers C ON O.CustomerID = C.CustomerID
+LEFT JOIN DimEmployees E ON O.EmployeeID = E.EmployeeID
+LEFT JOIN DimShippers S ON O.ShipVia = S.ShipperID
+LEFT JOIN DimTerritories T ON O.TerritoryID = T.TerritoryID
+LEFT JOIN Dim_SOR D ON D.StagingRawTableName = @SourceTableName AND D.SORKey = @SourceSystemKey
+WHERE 
+    (
+        C.CustomerKey IS NULL OR
+        E.EmployeeKey IS NULL OR
+        S.ShipperKey IS NULL OR
+        T.TerritoryKey IS NULL
+    )
+    AND O.OrderDate BETWEEN @StartDate AND @EndDate
+    AND EXISTS (SELECT 1 FROM Dim_SOR D WHERE D.StagingRawTableName = @SourceTableName AND D.SORKey = @SourceSystemKey);

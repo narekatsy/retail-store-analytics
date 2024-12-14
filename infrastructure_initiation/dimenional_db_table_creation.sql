@@ -1,163 +1,211 @@
 USE ORDER_DDS;
 
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Employee_MiniDim')
+    ALTER TABLE DimEmployees_MiniDimension DROP CONSTRAINT IF EXISTS FK_Employee_MiniDim;
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Supplier_MiniDim')
+    ALTER TABLE DimSuppliers_MiniDimension DROP CONSTRAINT IF EXISTS FK_Supplier_MiniDim;
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Product_MiniDim')
+    ALTER TABLE DimProducts_MiniDimension DROP CONSTRAINT IF EXISTS FK_Product_MiniDim;
 
--- DimCategories
-CREATE TABLE dbo.DimCategories (
-    category_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    category_id_nk INT NOT NULL,
-    category_name NVARCHAR(100),
-    cat_description NVARCHAR(255),
-    is_active BIT DEFAULT 1,
-    sor_key NVARCHAR(255) 
+DROP TABLE IF EXISTS FactOrderDetails;
+DROP TABLE IF EXISTS FactOrders;
+DROP TABLE IF EXISTS DimProducts_MiniDimension;
+DROP TABLE IF EXISTS DimProducts;
+DROP TABLE IF EXISTS DimSuppliers_MiniDimension;
+DROP TABLE IF EXISTS DimSuppliers;
+DROP TABLE IF EXISTS DimEmployees_MiniDimension;
+DROP TABLE IF EXISTS DimEmployees;
+DROP TABLE IF EXISTS DimShippers;
+DROP TABLE IF EXISTS DimTerritories;
+DROP TABLE IF EXISTS DimRegion;
+DROP TABLE IF EXISTS DimCustomers;
+DROP TABLE IF EXISTS DimCategories;
+DROP TABLE IF EXISTS Dim_SOR;
+
+-- Dim_SOR (Source system reference)
+CREATE TABLE Dim_SOR (
+    SORKey INT IDENTITY(1,1) PRIMARY KEY,
+    SORName NVARCHAR(100),
+    SORModule NVARCHAR(100),
+    SORTable NVARCHAR(100),
+    StagingRawTableName NVARCHAR(100)
 );
 
--- DimCustomers
-CREATE TABLE dbo.DimCustomers (
-    customer_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    customer_id_nk INT NOT NULL,
-    customer_name NVARCHAR(100),
-    contact_name NVARCHAR(100),
-    address NVARCHAR(255),
-    city NVARCHAR(50),
-    region NVARCHAR(50),
-    postal_code NVARCHAR(20),
-    country NVARCHAR(50),
-    start_date DATE NOT NULL,
-    end_date DATE NULL,
-    is_current BIT DEFAULT 1,
-    sor_key NVARCHAR(255) 
+-- DimCategories (SCD1 with delete, logical deletion)
+CREATE TABLE DimCategories (
+    CategoryKey INT IDENTITY(1,1) PRIMARY KEY,
+    CategoryID INT UNIQUE,
+    CategoryName NVARCHAR(50),
+    Description NVARCHAR(150),
+    IsDeleted BIT DEFAULT 0
 );
 
--- DimEmployees
-CREATE TABLE dbo.DimEmployees (
-    employee_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    employee_id_nk INT NOT NULL,
-    first_name NVARCHAR(100),
-    last_name NVARCHAR(100),
-    title NVARCHAR(100),
-    reports_to INT NULL,
-    active_status NVARCHAR(20),
-    is_active BIT DEFAULT 1,
-    sor_key NVARCHAR(255) 
+-- DimCustomers (SCD2, track history)
+CREATE TABLE DimCustomers (
+    CustomerKey INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID NVARCHAR(10) UNIQUE,
+    CompanyName NVARCHAR(100),
+    ContactName NVARCHAR(100),
+    ContactTitle NVARCHAR(100),
+    Address NVARCHAR(255),
+    City NVARCHAR(50),
+    Region NVARCHAR(20),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(50),
+    Phone NVARCHAR(30),
+    Fax NVARCHAR(30),
+    StartDate DATE DEFAULT GETDATE(),
+    EndDate DATE DEFAULT '9999-12-31',
+    CurrentIndicator BIT DEFAULT 1
 );
 
-CREATE TABLE dbo.OrderDetails (
-    OrderID INT NOT NULL,
-    ProductID INT NOT NULL,
-    UnitPrice MONEY NOT NULL,
-    Quantity SMALLINT NOT NULL,
-    Discount FLOAT NOT NULL,
-    sor_key NVARCHAR(255), 
-    PRIMARY KEY (OrderID, ProductID), 
-    FOREIGN KEY (OrderID) REFERENCES dbo.Orders(OrderID),
-    FOREIGN KEY (ProductID) REFERENCES dbo.Products(ProductID)
+-- DimEmployees (SCD4, split into base and mini-dimensions)
+CREATE TABLE DimEmployees (
+	EmployeeKey INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeID INT UNIQUE,
+    LastName NVARCHAR(50),
+    FirstName NVARCHAR(50),
+    TitleOfCourtesy NVARCHAR(10),
+    BirthDate DATE,
+    HireDate DATE,
+    Address NVARCHAR(255),
+    City NVARCHAR(50),
+    Region NVARCHAR(20),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(50),
+	Notes NVARCHAR(500),
+    ReportsTo INT,
+	PhotoPath NVARCHAR(150),
+    StartDate DATE DEFAULT GETDATE(),
+    EndDate DATE DEFAULT '9999-12-31',
+    IsDeleted BIT DEFAULT 0
 );
 
--- DimProducts
-CREATE TABLE dbo.DimProducts (
-    product_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    product_id_nk INT NOT NULL,
-    product_name NVARCHAR(100),
-    supplier_id INT,
-    category_id INT,
-    quantity_per_unit NVARCHAR(50),
-    unit_price DECIMAL(10, 2),
-    units_in_stock INT,
-    units_on_order INT,
-    reorder_level INT,
-    discontinued BIT,
-    sor_key NVARCHAR(255) 
+-- DimEmployees_MiniDimension (for more rapidly changing attributes)
+CREATE TABLE DimEmployees_MiniDimension (
+    MiniDimKey INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeKey INT,
+	Title NVARCHAR(100),
+	HomePhone NVARCHAR(30),
+    Extension NVARCHAR(10)    
 );
 
--- DimRegion
-CREATE TABLE dbo.DimRegion (
-    region_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    region_id_nk INT NOT NULL,
-    region_description NVARCHAR(255),
-    sor_key NVARCHAR(255) 
+ALTER TABLE DimEmployees_MiniDimension
+    ADD CONSTRAINT FK_Employee_MiniDim FOREIGN KEY (EmployeeKey) REFERENCES DimEmployees(EmployeeKey);
+
+-- DimRegion (SCD3, current and prior values)
+CREATE TABLE DimRegion (
+    RegionKey INT IDENTITY(1,1) PRIMARY KEY,
+    RegionID INT UNIQUE,
+    RegionDescription NVARCHAR(100),
+	RegionCategory NVARCHAR(20),
+	RegionImportance NVARCHAR(20),
+    CurrentRegionDescription NVARCHAR(100),
+    PriorRegionDescription NVARCHAR(100)
 );
 
--- DimShippers
-CREATE TABLE dbo.DimShippers (
-    shipper_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    shipper_id_nk INT NOT NULL,
-    company_name NVARCHAR(255),
-    phone NVARCHAR(50),
-    sor_key NVARCHAR(255) 
+-- DimSuppliers (SCD4, split into base and mini-dimensions)
+CREATE TABLE DimSuppliers (
+    SupplierKey INT IDENTITY(1,1) PRIMARY KEY,
+    SupplierID INT UNIQUE,
+    CompanyName NVARCHAR(100),
+    ContactName NVARCHAR(100),
+    ContactTitle NVARCHAR(100),
+    Address NVARCHAR(255),
+    City NVARCHAR(50),
+	Region NVARCHAR(20),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(100),
+    StartDate DATE DEFAULT GETDATE(),
+    EndDate DATE DEFAULT '9999-12-31'
 );
 
--- DimSuppliers
-CREATE TABLE dbo.DimSuppliers (
-    supplier_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    supplier_id_nk INT NOT NULL,
-    company_name NVARCHAR(255),
-    contact_name NVARCHAR(100),
-    contact_title NVARCHAR(100),
-    address NVARCHAR(255),
-    city NVARCHAR(50),
-    region NVARCHAR(50),
-    postal_code NVARCHAR(20),
-    country NVARCHAR(50),
-    phone NVARCHAR(50),
-    fax NVARCHAR(50),
-    sor_key NVARCHAR(255) 
+-- DimSuppliers_MiniDimension (for more rapidly changing attributes)
+CREATE TABLE DimSuppliers_MiniDimension (
+    MiniDimKey INT IDENTITY(1,1) PRIMARY KEY,
+    SupplierKey INT,
+    Phone NVARCHAR(20),
+    Fax NVARCHAR(20),
+    HomePage NVARCHAR(150)
 );
 
--- DimTerritories
-CREATE TABLE dbo.DimTerritories (
-    territory_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    territory_id_nk NVARCHAR(20) NOT NULL,
-    territory_description NVARCHAR(255),
-    region_id_nk INT,
-    sor_key NVARCHAR(255), 
-    FOREIGN KEY (region_id_nk) REFERENCES dbo.DimRegion(region_id_sk)
+ALTER TABLE DimSuppliers_MiniDimension
+    ADD CONSTRAINT FK_Supplier_MiniDim FOREIGN KEY (SupplierKey) REFERENCES DimSuppliers(SupplierKey);
+
+-- DimShippers (SCD1, overwrite with delete)
+CREATE TABLE DimShippers (
+    ShipperKey INT IDENTITY(1,1) PRIMARY KEY,
+    ShipperID INT UNIQUE,
+    CompanyName NVARCHAR(100),
+    Phone NVARCHAR(20)
 );
 
+-- DimTerritories (SCD3, current and prior values)
+CREATE TABLE DimTerritories (
+    TerritoryKey INT IDENTITY(1,1) PRIMARY KEY,
+    TerritoryID NVARCHAR(20) UNIQUE,
+    TerritoryDescription NVARCHAR(50),
+    CurrentTerritoryDescription NVARCHAR(50),
+    PriorTerritoryDescription NVARCHAR(50),
+    RegionKey INT,
+    FOREIGN KEY (RegionKey) REFERENCES DimRegion(RegionKey)
+);
 
--- FactOrders 
+-- DimProducts (SCD4, split into base and mini-dimensions)
+CREATE TABLE DimProducts (
+    ProductKey INT IDENTITY(1,1) PRIMARY KEY,
+    ProductID INT UNIQUE,
+    ProductName NVARCHAR(100),
+	SupplierKEY INT,
+    CategoryKEY INT,
+    ReorderLevel SMALLINT,
+    Discontinued BIT
+);
+
+-- DimProducts_MiniDimension (for more rapidly changing attributes)
+CREATE TABLE DimProducts_MiniDimension (
+    MiniDimKey INT IDENTITY(1,1) PRIMARY KEY,
+    ProductKey INT,
+	QuantityPerUnit NVARCHAR(50),
+    UnitPrice MONEY,
+    UnitsInStock SMALLINT,
+    UnitsOnOrder SMALLINT
+);
+
+ALTER TABLE DimProducts_MiniDimension
+    ADD CONSTRAINT FK_Product_MiniDim FOREIGN KEY (ProductKey) REFERENCES DimProducts(ProductKey);
+
+-- FactOrders (Snapshot, no changes over time)
 CREATE TABLE FactOrders (
-    fact_order_id_sk INT IDENTITY(1,1) PRIMARY KEY,
-    order_id_nk INT NOT NULL,
-    product_id_sk INT NOT NULL,
-    order_date DATE NOT NULL,
-    customer_id_sk INT NOT NULL,
-    employee_id_sk INT,
-    shipper_id_sk INT,
-    quantity INT,
-    unit_price DECIMAL(10, 2),
-    discount FLOAT,
-    total_price AS (quantity * unit_price * (1 - discount)) PERSISTED,
-    sor_key NVARCHAR(255), 
-    FOREIGN KEY (customer_id_sk) REFERENCES DimCustomers(customer_id_sk),
-    FOREIGN KEY (employee_id_sk) REFERENCES DimEmployees(employee_id_sk),
-    FOREIGN KEY (shipper_id_sk) REFERENCES DimShippers(shipper_id_sk),
-    FOREIGN KEY (product_id_sk) REFERENCES DimProducts(product_id_sk)
+    OrderKey INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT UNIQUE,
+    CustomerKey INT,
+    EmployeeKey INT,
+	OrderDate DATE,
+    RequiredDate DATE,
+    ShippedDate DATE,
+    ShipVia INT,
+    Freight MONEY,
+    ShipName NVARCHAR(100),
+    ShipAddress NVARCHAR(150),
+    ShipCity NVARCHAR(50),
+    ShipRegion NVARCHAR(30),
+    ShipPostalCode NVARCHAR(20),
+    ShipCountry NVARCHAR(50),
+	TerritoryKey INT,
+    FOREIGN KEY (CustomerKey) REFERENCES DimCustomers(CustomerKey),
+    FOREIGN KEY (EmployeeKey) REFERENCES DimEmployees(EmployeeKey),
+    FOREIGN KEY (TerritoryKey) REFERENCES DimTerritories(TerritoryKey),
 );
 
-ALTER TABLE FactOrders ADD CONSTRAINT UQ_FactOrders_order_id_nk UNIQUE (order_id_nk);
-
-
-
-CREATE TABLE dbo.FactOrders_Error (
-    fact_error_id INT IDENTITY(1,1) PRIMARY KEY,
-    staging_raw_id INT NOT NULL,
-    source_table_name NVARCHAR(255) NOT NULL,
-    error_reason NVARCHAR(255) NOT NULL,
-    order_id INT,
-    product_id INT,
-    customer_id NVARCHAR(5),
-    employee_id INT,
-    ship_via INT,
-    order_date DATE,
-    required_date DATE,
-    shipped_date DATE,
-    freight MONEY,
-    ship_name NVARCHAR(255),
-    ship_address NVARCHAR(255),
-    ship_city NVARCHAR(50),
-    ship_region NVARCHAR(50),
-    ship_postal_code NVARCHAR(20),
-    ship_country NVARCHAR(50),
-    sor_key NVARCHAR(255),
-    error_timestamp DATETIME DEFAULT GETDATE()
+-- FactOrderDetails (links orders and products)
+CREATE TABLE FactOrderDetails (
+    OrderDetailKey INT IDENTITY(1,1) PRIMARY KEY,
+    OrderKey INT,
+    ProductKey INT,
+    UnitPrice MONEY,
+    Quantity SMALLINT,
+    Discount REAL,
+    FOREIGN KEY (OrderKey) REFERENCES FactOrders(OrderKey),
+    FOREIGN KEY (ProductKey) REFERENCES DimProducts(ProductKey)
 );
