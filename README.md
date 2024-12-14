@@ -29,3 +29,22 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Set up the database
+
+Run the dimensional_db_creation.sql SQL script in the infrastructure_initiation.
+
+## Configure the SQL Server connection
+Add sql_server_config.cfg file in the main directory with the following format:
+```bash
+[SQL_SERVER]
+driver = {Driver anem}
+server = YOUR_SERVER_NAME
+database = ORDER_DDS
+trusted_connection = yes
+```
+
+## Run the project
+
+```bash
+python main.py
+```
