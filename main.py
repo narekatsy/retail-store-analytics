@@ -1,25 +1,16 @@
-<<<<<<< HEAD
-from pipeline_dimensional_data.queries.flow import DataFlow
-from datetime import datetime
-from logging_config import logger  
-
-if name == "main":
-   
-    start_date = datetime(2024, 1, 1)  
-    end_date = datetime(2024, 12, 31)  
-
-   
-    data_flow = DataFlow(start_date, end_date)
-
-    data_flow.exec()
-=======
 from pipeline_dimensional_data.flow import DimensionalDataFlow
+import utils
+
+def run(start_date, end_date):
+    pipeline = DimensionalDataFlow()
+
+    result = pipeline.exec(start_date, end_date)
+
+    if result['success']:
+        print("Pipeline completed successfully!")
+    else:
+        print(f"Pipeline execution failed: {result['error']}")
 
 if __name__ == "__main__":
-    pipeline = DimensionalDataFlow()
-    result = pipeline.exec()
-    if not result["success"]:
-        print(f"Pipeline execution failed: {result['error']}")
-    else:
-        print("Pipeline completed successfully!")
->>>>>>> 51af066439ccf47b051a4d13b03d189371052e91
+    utils.test_connection()
+    run(start_date = '2024-01-01', end_date = '2024-12-31')

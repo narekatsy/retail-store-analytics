@@ -1,42 +1,21 @@
-USE ORDER_DDS;
+DECLARE @SourceSystemKey INT;
+DECLARE @SourceTableName NVARCHAR(100);
 
-DECLARE @SourceTableName NVARCHAR(255) = 'Staging_Region';
+SET @SourceSystemKey = 1;
+SET @SourceTableName = 'Region_Staging';
 
-
-INSERT INTO dbo.Dim_SOR (source_table_name, source_key)
-SELECT DISTINCT
-    @SourceTableName, CAST(ST.StagingID AS NVARCHAR)
-FROM dbo.Staging_Region AS ST
-LEFT JOIN dbo.Dim_SOR AS DS
-    ON DS.source_table_name = @SourceTableName AND DS.source_key = CAST(ST.StagingID AS NVARCHAR)
-WHERE DS.sor_key IS NULL;
-
---  Insert 
-INSERT INTO dbo.DimRegion (
-    region_id_nk,
-    region_description,
-    sor_key
+INSERT INTO DimRegion (
+    RegionID, RegionDescription, RegionCategory, RegionImportance, 
+    CurrentRegionDescription, PriorRegionDescription
 )
-SELECT 
-    ST.RegionID,
-    ST.RegionDescription,
-    DS.sor_key
-FROM dbo.Staging_Region AS ST
-LEFT JOIN dbo.Dim_SOR AS DS
-    ON DS.source_table_name = @SourceTableName AND DS.source_key = CAST(ST.StagingID AS NVARCHAR)
-LEFT JOIN dbo.DimRegion AS DT
-    ON DT.region_id_nk = ST.RegionID
-WHERE DT.region_id_nk IS NULL;
-
---  Update
-UPDATE DT
-SET 
-    DT.region_description = ST.RegionDescription,
-    DT.sor_key = DS.sor_key
-FROM dbo.DimRegion AS DT
-INNER JOIN dbo.Staging_Region AS ST
-    ON DT.region_id_nk = ST.RegionID
-INNER JOIN dbo.Dim_SOR AS DS
-    ON DS.source_table_name = @SourceTableName AND DS.source_key = CAST(ST.StagingID AS NVARCHAR)
+SELECT
+    R.RegionID,
+    R.RegionDescription,
+    R.RegionCategory,
+    R.RegionImportance,
+    R.RegionDescription AS CurrentRegionDescription,
+    NULL AS PriorRegionDescription
+FROM 
+    Region_Staging R
 WHERE 
-    DT.region_description <> ST.RegionDescription;
+    EXISTS (SELECT 1 FROM Dim_SOR S WHERE S.StagingRawTableName = @SourceTableName AND S.SORKey = @SourceSystemKey);
